@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Scrape Results</title>
+</head>
+<body>
+  <h2>Books Found</h2>
+  <table border="1" cellpadding="5">
+    <tr>
+      {% for key in books[0].keys() %}
+      <th>{{ key }}</th>
+      {% endfor %}
+    </tr>
+    {% for book in books %}
+    <tr>
+      {% for value in book.values() %}
+      <td>{{ value }}</td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </table>
+  <br>
+  <a href="/download">Download CSV</a>
+</body>
+</html>

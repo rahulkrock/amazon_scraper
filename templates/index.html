@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Amazon Book Scraper</title>
+  <script>
+    function startProgress() {
+      document.getElementById("progress").style.display = "block";
+      let interval = setInterval(function() {
+        fetch("/progress")
+          .then(res => res.json())
+          .then(data => {
+            let pct = 0;
+            if (data.total > 0) {
+              pct = Math.floor((data.current / data.total) * 100);
+            }
+            document.getElementById("bar").style.width = pct + "%";
+            document.getElementById("bar").innerText = pct + "%";
+            if (pct >= 100) clearInterval(interval);
+          });
+      }, 1000);
+    }
+  </script>
+  <style>
+    #progress { display:none; width:100%; background:#ddd; margin-top:10px; }
+    #bar { width:0%; height:24px; background:green; color:white; text-align:center; }
+  </style>
+</head>
+<body>
+  <h2>Enter Amazon Bestseller Category URL</h2>
+  <form method="POST" onsubmit="startProgress()">
+    <input type="text" name="url" placeholder="Paste category URL" size="80" required>
+    <button type="submit">Scrape</button>
+  </form>
+  <div id="progress">
+    <div id="bar">0%</div>
+  </div>
+</body>
+</html>
