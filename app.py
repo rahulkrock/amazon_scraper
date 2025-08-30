@@ -65,18 +65,22 @@ def scrape_books(category_url):
                     details[key] = val
 
         # -------- JSON-LD Fallback ----------
-        if not details.get("Publisher"):
+        if not details.get("Publisher") or not details.get("Author"):
             for script in prod_soup.find_all("script", type="application/ld+json"):
                 try:
                     data = json.loads(script.string)
                     if isinstance(data, dict):
-                        if "author" in data:
+                        if "author" in data and not details.get("Author"):
                             details["Author"] = (
-                                data["author"][0]["name"] if isinstance(data["author"], list) else data["author"]["name"]
+                                data["author"][0]["name"]
+                                if isinstance(data["author"], list)
+                                else data["author"]["name"]
                             )
-                        if "publisher" in data:
+                        if "publisher" in data and not details.get("Publisher"):
                             details["Publisher"] = (
-                                data["publisher"]["name"] if isinstance(data["publisher"], dict) else data["publisher"]
+                                data["publisher"]["name"]
+                                if isinstance(data["publisher"], dict)
+                                else data["publisher"]
                             )
                 except Exception:
                     continue
@@ -86,13 +90,19 @@ def scrape_books(category_url):
         author = prod_soup.select_one(".author a") or details.get("Author")
         price = prod_soup.select_one(".a-price .a-offscreen")
 
+        # ---- Page count (hybrid method) ----
         pages = None
-        for k in details:
-            if "pages" in k.lower():
-                m = re.search(r"(\d+)", details[k])
+        for k, v in details.items():
+            if "page" in k.lower() or "print length" in k.lower():
+                m = re.search(r"(\d+)", v)
                 if m:
                     pages = int(m.group(1))
                 break
+        if not pages:
+            text = prod_soup.get_text(" ", strip=True)
+            m = re.search(r"(\d+)\s+pages", text, re.I)
+            if m:
+                pages = int(m.group(1))
 
         if pages and pages >= 500:
             progress["current"] += 1
